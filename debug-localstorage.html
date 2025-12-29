@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>localStorage Test</title>
+</head>
+<body>
+    <h1>localStorage Debug Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            console.log(message);
+            output.innerHTML += '<p>' + message + '</p>';
+        }
+        
+        log('Testing localStorage...');
+        
+        // Test 1: Check availability
+        try {
+            localStorage.setItem('test', 'value');
+            const value = localStorage.getItem('test');
+            log('✓ localStorage is available: ' + value);
+            localStorage.removeItem('test');
+        } catch (e) {
+            log('✗ localStorage error: ' + e.message);
+        }
+        
+        // Test 2: Test with our data structure
+        try {
+            const testData = {
+                id: 'test-1',
+                date: '2025-01-01',
+                machineNumber: 'M-001',
+                startupCleared: 'Test User',
+                mqrSignOff: 'Test Signer',
+                timeSlots: [
+                    { time: '08h00', item: 'Test Item', opAuto: 'OP', counter: '100', goodQty: '95', rejectsQty: '5', comments: 'Test', qcCheck: 'Passed' }
+                ],
+                status: 'Active',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('form_submissions', JSON.stringify([testData]));
+            const retrieved = JSON.parse(localStorage.getItem('form_submissions'));
+            log('✓ Form data test: ' + JSON.stringify(retrieved[0].machineNumber));
+            localStorage.removeItem('form_submissions');
+        } catch (e) {
+            log('✗ Form data error: ' + e.message);
+        }
+        
+        // Test 3: Check browser info
+        log('User Agent: ' + navigator.userAgent);
+        log('In private mode: ' + (navigator.webdriver ? 'Possibly' : 'Unknown'));
+    </script>
+</body>
+</html>
