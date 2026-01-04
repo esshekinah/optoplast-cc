@@ -57,6 +57,7 @@ function Input({
   disabled,
   required,
   error,
+  className,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -65,6 +66,7 @@ function Input({
   disabled?: boolean;
   required?: boolean;
   error?: string;
+  className?: string;
 }) {
   return (
     <div>
@@ -77,7 +79,7 @@ function Input({
         required={required}
         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           error ? 'border-red-300' : 'border-gray-200'
-        } ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white'}`}
+        } ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white'} ${className || ''}`}
       />
       {error ? <p className="text-xs text-red-600 mt-1">{error}</p> : null}
     </div>
