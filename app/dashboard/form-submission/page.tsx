@@ -11,6 +11,7 @@ import {
   formSubmissionUtils,
   DataError
 } from '../../../lib/data-service';
+import { Input } from '@/components/ui/input';
 
 const TIME_SLOTS = ['08h00', '10h00', '12h00', '14h00', '16h00'];
 
@@ -49,7 +50,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="block text-sm font-medium text-gray-700 mb-1">{children}</label>;
 }
 
-function Input({
+function TextInput({
   value,
   onChange,
   placeholder,
@@ -70,7 +71,7 @@ function Input({
 }) {
   return (
     <div>
-      <input
+      <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -397,11 +398,11 @@ export default function FormSubmission() {
           <div className="flex items-center gap-4 flex-wrap">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
+              <TextInput
                 type="text"
                 placeholder="Search submissions..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(v) => setQuery(v)}
                 className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
               />
             </div>
@@ -584,7 +585,7 @@ export default function FormSubmission() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <FieldLabel>DATE</FieldLabel>
-                <Input
+                <TextInput
                   value={form.date}
                   onChange={(v) => setForm((s) => ({ ...s, date: v }))}
                   type="date"
@@ -596,7 +597,7 @@ export default function FormSubmission() {
 
               <div>
                 <FieldLabel>MACHINE NUMBER</FieldLabel>
-                <Input
+                <TextInput
                   value={form.machineNumber}
                   onChange={(v) => setForm((s) => ({ ...s, machineNumber: v }))}
                   placeholder="e.g. M-001"
@@ -608,7 +609,7 @@ export default function FormSubmission() {
 
               <div>
                 <FieldLabel>By</FieldLabel>
-                <Input
+                <TextInput
                   value="K. Valentyn"
                   onChange={() => {}}
                   disabled
@@ -639,7 +640,7 @@ export default function FormSubmission() {
                   {form.timeSlots.map((slot, index) => (
                     <tr key={index}>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.time}
                           onChange={() => {}}
                           disabled
@@ -647,7 +648,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.item}
                           onChange={(v) => updateTimeSlot(index, 'item', v)}
                           disabled={isReadOnly}
@@ -655,7 +656,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.opAuto}
                           onChange={(v) => updateTimeSlot(index, 'opAuto', v)}
                           disabled={isReadOnly}
@@ -663,7 +664,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.counter}
                           onChange={(v) => updateTimeSlot(index, 'counter', v)}
                           disabled={isReadOnly}
@@ -671,7 +672,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.goodQty}
                           onChange={(v) => updateTimeSlot(index, 'goodQty', v)}
                           disabled={isReadOnly}
@@ -679,7 +680,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.rejectsQty}
                           onChange={(v) => updateTimeSlot(index, 'rejectsQty', v)}
                           disabled={isReadOnly}
@@ -687,7 +688,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.comments}
                           onChange={(v) => updateTimeSlot(index, 'comments', v)}
                           disabled={isReadOnly}
@@ -695,7 +696,7 @@ export default function FormSubmission() {
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
-                        <Input
+                        <TextInput
                           value={slot.qcCheck}
                           onChange={(v) => updateTimeSlot(index, 'qcCheck', v)}
                           disabled={isReadOnly}
@@ -712,7 +713,7 @@ export default function FormSubmission() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
               <div>
                 <FieldLabel>DATE</FieldLabel>
-                <Input
+                <TextInput
                   value={form.date}
                   onChange={(v) => setForm((s) => ({ ...s, date: v }))}
                   type="date"
@@ -722,7 +723,7 @@ export default function FormSubmission() {
 
               <div>
                 <FieldLabel>Start-up cleared</FieldLabel>
-                <Input
+                <TextInput
                   value={form.startupCleared}
                   onChange={(v) => setForm((s) => ({ ...s, startupCleared: v }))}
                   placeholder="Enter name"
@@ -734,7 +735,7 @@ export default function FormSubmission() {
 
               <div>
                 <FieldLabel>MQR Sign-off</FieldLabel>
-                <Input
+                <TextInput
                   value={form.mqrSignOff}
                   onChange={(v) => setForm((s) => ({ ...s, mqrSignOff: v }))}
                   placeholder="Enter name"
