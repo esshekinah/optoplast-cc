@@ -17,23 +17,11 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# Install production dependencies only
-FROM base AS prod-deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN \
-  if [ -f package-lock.json ]; then npm ci --only=production && npm cache clean --force; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
-
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-RUN mkdir -p /app/public
 
 # Set required environment variables for build
 ENV NODE_ENV=production
@@ -42,7 +30,6 @@ ENV NEXT_PUBLIC_APP_URL=https://demo.emmanuelshekinah.co.za
 ENV NEXTAUTH_SECRET=build-time-secret-key-change-in-production
 
 # Build the application
-RUN npm install
 RUN npm run build
 
 # Production image, copy all the files and run next
@@ -61,9 +48,6 @@ COPY --from=builder /app/public ./public
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
-
-# Copy production node_modules
-COPY --from=prod-deps /app/node_modules ./node_modules
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
