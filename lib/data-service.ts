@@ -31,7 +31,7 @@ export type UpdateFormSubmissionData = Partial<CreateFormSubmissionData>;
 const STORAGE_KEY = 'form_submissions';
 
 // Error handling utility
-class DataError extends Error {
+export class DataError extends Error {
   constructor(message: string, public code: string) {
     super(message);
     this.name = 'DataError';
