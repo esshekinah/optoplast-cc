@@ -25,11 +25,11 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN \
-  if [ -f .env.local ]; then cp .env.local .env; \
-  elif [ -f .env ]; then cp .env .env.local; \
-  fi && \
-  npm run build
+# RUN \
+#   if [ -f .env.local ]; then cp .env.local .env; \
+#   elif [ -f .env ]; then cp .env .env.local; \
+#   fi && \
+#   npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
