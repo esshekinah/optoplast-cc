@@ -37,6 +37,7 @@ ENV NEXT_PUBLIC_APP_URL=https://demo.emmanuelshekinah.co.za
 ENV NEXTAUTH_SECRET=build-time-secret-key-change-in-production
 
 # Build the application
+RUN npm install
 RUN npm run build
 
 # Production image, copy all the files and run next
