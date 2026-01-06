@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "postinstall": "npx update-browserslist-db@latest"
+    "postinstall": "npx update-browserslist-db@latest",
+    "test:build": "node scripts/test-build.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
