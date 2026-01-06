@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Search, Filter, Plus, Trash2, Pencil, Eye, X, FileText } from 'lucide-react';
 import { 
   formSubmissionService, 
@@ -14,6 +15,21 @@ import {
 import { Input } from '@/components/ui/input';
 
 const TIME_SLOTS = ['08h00', '10h00', '12h00', '14h00', '16h00'];
+
+// Utility functions for date/time validation
+const getCurrentDate = () => {
+  return new Date().toISOString().split('T')[0];
+};
+
+const getCurrentTime = () => {
+  const now = new Date();
+  return now.toTimeString().slice(0, 5); // HH:MM format
+};
+
+const getCurrentDateTime = () => {
+  const now = new Date();
+  return now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM format
+};
 
 const EMPTY_TIME_SLOT: TimeSlot = {
   time: '',
@@ -59,6 +75,7 @@ function TextInput({
   required,
   error,
   className,
+  max,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -68,6 +85,7 @@ function TextInput({
   required?: boolean;
   error?: string;
   className?: string;
+  max?: string;
 }) {
   return (
     <div>
@@ -78,6 +96,7 @@ function TextInput({
         type={type}
         disabled={disabled}
         required={required}
+        max={max}
         className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
           error ? 'border-red-300' : 'border-gray-200'
         } ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white'} ${className || ''}`}
@@ -150,6 +169,9 @@ export default function FormSubmission() {
   // Data state
   const [submissions, setSubmissions] = useState<FormSubmission[]>([]);
 
+  // Get session for current user
+  const { data: session } = useSession();
+
   const selectedSubmission = useMemo(
     () => submissions.find((s) => s.id === selectedId) ?? null,
     [submissions, selectedId]
@@ -181,7 +203,7 @@ export default function FormSubmission() {
       // Initialize sample data if empty
       if (data.length === 0) {
         console.log('No data found, initializing sample data...');
-        await formSubmissionUtils.initializeSampleData();
+        await formSubmissionUtils.initializeSampleData(session?.user?.name || undefined);
         const newData = await formSubmissionService.getAll();
         setSubmissions(newData);
       }
@@ -232,7 +254,16 @@ export default function FormSubmission() {
   function openCreate() {
     setModalMode('create');
     setSelectedId(null);
-    setForm({ ...EMPTY_FORM, date: new Date().toISOString().split('T')[0] });
+    
+    // Create new form with current user and today's date
+    const newForm = { 
+      ...EMPTY_FORM, 
+      date: new Date().toISOString().split('T')[0],
+      // Set the current user's name in the "By" field (which maps to mqrSignOff)
+      mqrSignOff: session?.user?.name || 'K. Valentyn'
+    };
+    
+    setForm(newForm);
     setErrors({});
     setModalOpen(true);
   }
@@ -263,11 +294,34 @@ export default function FormSubmission() {
 
   function validate(current: CreateFormSubmissionData) {
     const e: Record<string, string> = {};
+    const today = getCurrentDate();
 
-    if (!current.date.trim()) e.date = 'Date is required.';
+    if (!current.date.trim()) {
+      e.date = 'Date is required.';
+    } else if (current.date > today) {
+      e.date = 'Date cannot be in the future. Please select today or a previous date.';
+    }
+
     if (!current.machineNumber.trim()) e.machineNumber = 'Machine number is required.';
     if (!current.startupCleared.trim()) e.startupCleared = 'Start-up cleared is required.';
     if (!current.mqrSignOff.trim()) e.mqrSignOff = 'MQR sign-off is required.';
+
+    // Validate time slots for future times
+    if (current.date === today) {
+      const currentTime = getCurrentTime();
+      
+      current.timeSlots.forEach((slot, index) => {
+        if (slot.time) {
+          // Convert time slot format (e.g., "08h00") to "08:00" for comparison
+          const timeForComparison = slot.time.replace('h', ':');
+          
+          if (timeForComparison > currentTime) {
+            // Add error to general errors object for display
+            e.futureTime = `Time slots cannot be in the future for today's date. Please check: ${slot.time}`;
+          }
+        }
+      });
+    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -346,9 +400,32 @@ export default function FormSubmission() {
 
   const isReadOnly = modalMode === 'view';
 
+  // Helper function to check if a time slot is in the future
+  const isTimeSlotInFuture = (timeSlot: string, date: string): boolean => {
+    if (date !== getCurrentDate()) return false;
+    if (!timeSlot) return false;
+    
+    const currentTime = getCurrentTime();
+    const timeForComparison = timeSlot.replace('h', ':');
+    
+    return timeForComparison > currentTime;
+  };
+
   function updateTimeSlot(index: number, field: keyof TimeSlot, value: string) {
     const updatedTimeSlots = [...form.timeSlots];
     updatedTimeSlots[index] = { ...updatedTimeSlots[index], [field]: value };
+    
+    // Real-time validation for time fields
+    if (field === 'time' && form.date === getCurrentDate()) {
+      const currentTime = getCurrentTime();
+      const timeForComparison = value.replace('h', ':');
+      
+      if (timeForComparison > currentTime) {
+        // Show warning but still allow the update
+        console.warn(`Time ${value} is in the future for today's date`);
+      }
+    }
+    
     setForm((prev) => ({ ...prev, timeSlots: updatedTimeSlots }));
   }
 
@@ -589,10 +666,16 @@ export default function FormSubmission() {
                   value={form.date}
                   onChange={(v) => setForm((s) => ({ ...s, date: v }))}
                   type="date"
+                  max={getCurrentDate()}
                   disabled={isReadOnly}
                   required
                   error={errors.date}
                 />
+                {!isReadOnly && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Cannot select future dates
+                  </p>
+                )}
               </div>
 
               <div>
@@ -609,11 +692,13 @@ export default function FormSubmission() {
 
               <div>
                 <FieldLabel>By</FieldLabel>
-                <TextInput
-                  value="K. Valentyn"
-                  onChange={() => {}}
-                  disabled
+                <Input
+                  value={session?.user?.name || 'K. Valentyn'}
+                  onChange={() => {}} // Read-only
+                  disabled={true}
+                  className="bg-gray-50"
                 />
+                <p className="text-xs text-gray-500 mt-1">Current logged-in user</p>
               </div>
             </div>
           </div>
@@ -621,6 +706,13 @@ export default function FormSubmission() {
           {/* Production Table */}
           <div className="rounded-lg border border-gray-200 p-5">
             <SectionTitle title="MACHINE PRODUCTION SHEET" />
+
+            {/* Time validation error */}
+            {errors.futureTime && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">⚠️ {errors.futureTime}</p>
+              </div>
+            )}
 
             <div className="overflow-x-auto">
               <table className="w-full border border-gray-300">
@@ -637,15 +729,20 @@ export default function FormSubmission() {
                   </tr>
                 </thead>
                 <tbody>
-                  {form.timeSlots.map((slot, index) => (
-                    <tr key={index}>
+                  {form.timeSlots.map((slot, index) => {
+                    const isFutureTime = isTimeSlotInFuture(slot.time, form.date);
+                    return (
+                    <tr key={index} className={isFutureTime ? 'bg-red-50' : ''}>
                       <td className="border border-gray-300 px-3 py-2">
                         <TextInput
                           value={slot.time}
                           onChange={() => {}}
                           disabled
-                          className="border-0 bg-transparent"
+                          className={`border-0 bg-transparent ${isFutureTime ? 'text-red-600 font-medium' : ''}`}
                         />
+                        {isFutureTime && (
+                          <p className="text-xs text-red-600 mt-1">⚠️ Future time</p>
+                        )}
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
                         <TextInput
@@ -704,7 +801,8 @@ export default function FormSubmission() {
                         />
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -717,8 +815,14 @@ export default function FormSubmission() {
                   value={form.date}
                   onChange={(v) => setForm((s) => ({ ...s, date: v }))}
                   type="date"
+                  max={getCurrentDate()}
                   disabled={isReadOnly}
                 />
+                {!isReadOnly && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Cannot select future dates
+                  </p>
+                )}
               </div>
 
               <div>
@@ -735,14 +839,19 @@ export default function FormSubmission() {
 
               <div>
                 <FieldLabel>MQR Sign-off</FieldLabel>
-                <TextInput
+                <Input
                   value={form.mqrSignOff}
                   onChange={(v) => setForm((s) => ({ ...s, mqrSignOff: v }))}
-                  placeholder="Enter name"
+                  placeholder={session?.user?.name || "Enter name"}
                   disabled={isReadOnly}
                   required
                   error={errors.mqrSignOff}
                 />
+                {!isReadOnly && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Defaults to: {session?.user?.name || 'K. Valentyn'}
+                  </p>
+                )}
               </div>
             </div>
           </div>

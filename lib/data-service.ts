@@ -352,16 +352,17 @@ export const formSubmissionService = createFormSubmissionService();
 // Utility functions for common operations
 export const formSubmissionUtils = {
   // Initialize with sample data if Firestore collection is empty
-  initializeSampleData: async (): Promise<void> => {
+  initializeSampleData: async (currentUserName?: string): Promise<void> => {
     try {
       const existing = await formSubmissionService.getAll();
       if (existing.length > 0) return; // Already has data
 
+      const userName = currentUserName || 'K. Valentyn';
       const sampleData: CreateFormSubmissionData = {
         date: new Date().toISOString().split('T')[0],
         machineNumber: 'M-001',
         startupCleared: 'John Doe',
-        mqrSignOff: 'K. Valentyn',
+        mqrSignOff: userName, // Use current user or default
         timeSlots: [
           { time: '08h00', item: 'Sample Item 1', opAuto: 'OP', counter: '100', goodQty: '95', rejectsQty: '5', comments: 'All good', qcCheck: 'Passed' },
           { time: '10h00', item: 'Sample Item 2', opAuto: 'AUTO', counter: '200', goodQty: '190', rejectsQty: '10', comments: 'Running smoothly', qcCheck: 'Passed' },
