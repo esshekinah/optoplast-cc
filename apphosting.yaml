@@ -16,11 +16,11 @@ env:
       - BUILD
       - RUNTIME
   
-  - variable: NEXTAUTH_URL
-    secret: NEXTAUTH_URL
-    availability:
-      - BUILD
-      - RUNTIME
+  # - variable: NEXTAUTH_URL
+  #   secret: NEXTAUTH_URL
+  #   availability:
+  #     - BUILD
+  #     - RUNTIME
   
   # Google OAuth Configuration
   - variable: GOOGLE_CLIENT_ID
