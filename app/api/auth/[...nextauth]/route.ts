@@ -2,7 +2,10 @@ import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import type { NextAuthOptions } from 'next-auth';
 
-// Validate required environment variables
+// Check if we're in build time (when secrets might not be available)
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET;
+
+// Validate required environment variables only at runtime
 const requiredEnvVars = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
@@ -10,21 +13,23 @@ const requiredEnvVars = {
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
 };
 
-// Check for missing environment variables
-const missingEnvVars = Object.entries(requiredEnvVars)
-  .filter(([key, value]) => !value)
-  .map(([key]) => key);
+// Only validate if not in build time
+if (!isBuildTime) {
+  const missingEnvVars = Object.entries(requiredEnvVars)
+    .filter(([key, value]) => !value)
+    .map(([key]) => key);
 
-if (missingEnvVars.length > 0) {
-  console.error('Missing required environment variables:', missingEnvVars);
-  throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  if (missingEnvVars.length > 0) {
+    console.error('Missing required environment variables:', missingEnvVars);
+    throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  }
 }
 
 const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID || 'build-time-placeholder',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'build-time-placeholder',
     }),
   ],
   callbacks: {

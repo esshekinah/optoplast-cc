@@ -7,20 +7,67 @@ runConfig:
   # cpu: 1
   # memoryMiB: 512
 
-  # Environment variables and secrets.
-  # env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
-  # - variable: MESSAGE
-  #   value: Hello world!
-  #   availability:
-  #     - BUILD
-  #     - RUNTIME
-
-  # Grant access to secrets in Cloud Secret Manager.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
-  # - variable: MY_SECRET
-  #   secret: mySecretRef
+# Environment variables and secrets.
 env:
+  # NextAuth Configuration
   - variable: NEXTAUTH_SECRET
     secret: NEXTAUTH_SECRET
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXTAUTH_URL
+    secret: NEXTAUTH_URL
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  # Google OAuth Configuration
+  - variable: GOOGLE_CLIENT_ID
+    secret: GOOGLE_CLIENT_ID
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: GOOGLE_CLIENT_SECRET
+    secret: GOOGLE_CLIENT_SECRET
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  # Firebase Configuration (these are public, so can be set as regular env vars)
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: AIzaSyB9eI9__rEPFvzdYRs1i9_g8bzUxuGGz-k
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: optoplast-50935.firebaseapp.com
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: optoplast-50935
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: optoplast-50935.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "660935661330"
+    availability:
+      - BUILD
+      - RUNTIME
+  
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: 1:660935661330:web:3bc1926a07469f3a75c5cb
+    availability:
+      - BUILD
+      - RUNTIME
