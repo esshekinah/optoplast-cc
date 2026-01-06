@@ -2,7 +2,7 @@
 
 echo "🔐 Granting App Hosting access to secrets"
 echo "========================================"
-
+#
 # Check if Firebase CLI is installed
 if ! command -v firebase &> /dev/null; then
     echo "❌ Firebase CLI not found. Please install: npm install -g firebase-tools"
