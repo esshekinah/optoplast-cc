@@ -1,12 +1,8 @@
 # Use the official Node.js runtime as the base image
 FROM node:18-alpine AS base
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -28,6 +24,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_APP_URL=https://demo.emmanuelshekinah.co.za
 ENV NEXTAUTH_SECRET=build-time-secret-key-change-in-production
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=optoplast-cc
 
 # Build the application
 RUN npm run build
@@ -36,17 +33,20 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the public folder from the project as it's not included in standalone
+# Create public directory if it doesn't exist
+RUN mkdir -p ./public
+
+# Copy the public folder from the project (if it exists)
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
-RUN mkdir .next
+RUN mkdir -p .next
 RUN chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
@@ -54,15 +54,12 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Debug: List files to make sure everything is copied correctly
-RUN ls -la && echo "Contents of .next:" && ls -la .next/ || echo "No .next directory"
-
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output

@@ -337,11 +337,13 @@ class ApiFormSubmissionService implements IFormSubmissionService {
 
 // Factory function to get the appropriate service
 export function createFormSubmissionService(): IFormSubmissionService {
-  // Switch between localStorage and API here
+  // Switch between localStorage and Firestore here
   // For localStorage: return new LocalStorageFormSubmissionService();
-  // For API: return new ApiFormSubmissionService();
+  // For Firestore: return new FirestoreFormSubmissionService();
   
-  return new LocalStorageFormSubmissionService();
+  // Import Firestore service
+  const { firestoreFormSubmissionService } = require('./firestore-service');
+  return firestoreFormSubmissionService;
 }
 
 // Export singleton instance
@@ -349,7 +351,7 @@ export const formSubmissionService = createFormSubmissionService();
 
 // Utility functions for common operations
 export const formSubmissionUtils = {
-  // Initialize with sample data if storage is empty
+  // Initialize with sample data if Firestore collection is empty
   initializeSampleData: async (): Promise<void> => {
     try {
       const existing = await formSubmissionService.getAll();
@@ -376,7 +378,7 @@ export const formSubmissionUtils = {
     }
   },
 
-  // Export data to JSON
+  // Export data to JSON (works with both localStorage and Firestore)
   exportData: async (): Promise<string> => {
     try {
       const data = await formSubmissionService.getAll();
@@ -386,7 +388,7 @@ export const formSubmissionUtils = {
     }
   },
 
-  // Import data from JSON
+  // Import data from JSON (Note: This will work differently with Firestore)
   importData: async (jsonData: string): Promise<void> => {
     try {
       const data = JSON.parse(jsonData);
@@ -394,15 +396,14 @@ export const formSubmissionUtils = {
         throw new DataError('Invalid data format', 'INVALID_FORMAT');
       }
 
-      // Validate data structure
-      const validData = data.filter(item => 
-        item.id && 
-        item.date && 
-        item.machineNumber && 
-        Array.isArray(item.timeSlots)
-      );
-
-      storage.set(validData);
+      // For Firestore, we need to create each document individually
+      for (const item of data) {
+        if (item.id && item.date && item.machineNumber && Array.isArray(item.timeSlots)) {
+          // Remove id and timestamps as they'll be auto-generated
+          const { id, createdAt, updatedAt, ...createData } = item;
+          await formSubmissionService.create(createData);
+        }
+      }
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new DataError('Invalid JSON format', 'INVALID_JSON');
@@ -411,10 +412,14 @@ export const formSubmissionUtils = {
     }
   },
 
-  // Clear all data
+  // Clear all data (Note: This is more complex with Firestore)
   clearAllData: async (): Promise<void> => {
     try {
-      storage.clear();
+      // For Firestore, we need to delete each document individually
+      const allData = await formSubmissionService.getAll();
+      for (const item of allData) {
+        await formSubmissionService.delete(item.id);
+      }
     } catch (error) {
       throw error;
     }
