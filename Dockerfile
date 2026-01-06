@@ -24,7 +24,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_APP_URL=https://demo.emmanuelshekinah.co.za
 ENV NEXTAUTH_SECRET=build-time-secret-key-change-in-production
-ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=optoplast-cc
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=optoplast-50935
 
 # Build the application
 RUN npm run build
