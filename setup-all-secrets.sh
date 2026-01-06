@@ -51,7 +51,24 @@ echo $GOOGLE_CLIENT_ID | firebase apphosting:secrets:set GOOGLE_CLIENT_ID
 echo $GOOGLE_CLIENT_SECRET | firebase apphosting:secrets:set GOOGLE_CLIENT_SECRET
 
 echo ""
-echo "✅ All secrets set! Verifying..."
+echo "🔑 Granting App Hosting access to all secrets..."
+echo ""
+
+# Grant access to all secrets
+SECRETS=("NEXTAUTH_SECRET" "NEXTAUTH_URL" "GOOGLE_CLIENT_ID" "GOOGLE_CLIENT_SECRET")
+
+for secret in "${SECRETS[@]}"; do
+    echo "Granting access to: $secret"
+    firebase apphosting:secrets:grantaccess $secret
+    if [ $? -eq 0 ]; then
+        echo "✅ Access granted to $secret"
+    else
+        echo "⚠️  Failed to grant access to $secret (it might already have access)"
+    fi
+done
+
+echo ""
+echo "✅ All secrets set and access granted! Verifying..."
 firebase apphosting:secrets:list
 
 echo ""
@@ -66,6 +83,7 @@ echo ""
 echo "🚀 Your app should now build and deploy successfully!"
 echo ""
 echo "📖 Next steps:"
-echo "1. Commit and push your changes (apphosting.yaml updated)"
-echo "2. Firebase will automatically redeploy"
-echo "3. Test authentication at your app URL"
+echo "1. Wait 2-3 minutes for changes to propagate"
+echo "2. Commit and push your changes (apphosting.yaml updated)"
+echo "3. Firebase will automatically redeploy"
+echo "4. Test authentication at your app URL"
