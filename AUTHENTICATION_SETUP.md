@@ -1,7 +1,7 @@
 # Google Single Sign-On Authentication Setup Guide
 
 ## 1. Google OAuth Setup
-
+o2L9WfR+5JzS8N1mK6xVqY3gH4pZ2b7uE9iD0A8nL4M=
 ### Step 1: Create Google OAuth Credentials
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
